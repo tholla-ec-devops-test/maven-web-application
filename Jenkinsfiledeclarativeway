@@ -1,0 +1,68 @@
+ pipeline{
+agent any
+tools{
+maven "maven3.6.2"
+}
+options{
+buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', daysToKeepStr: '', numToKeepStr: '5'))
+
+timestamps()
+}
+triggers{
+pollSCM('* * * * *')
+}
+stages{
+stage('CheckOutCode'){
+steps{
+  git branch: 'development', credentialsId: 'deaf22c6-86f5-4e40-85de-23f11bd1acc3', url: 
+ 'https://github.com/tholla-ec-devops-test/maven-web-application.git'
+      }
+	  }
+stage('Build'){
+steps{
+ sh "mvn clean package"
+     }
+     }
+stage('executeSonarQuberRport'){
+
+steps{
+	sh "mvn sonar:sonar"
+     }
+
+	 }	     
+     stage('DeployArtifactsintoNexus'){
+
+steps{
+	sh "mvn clean deploy"
+     }
+	 }
+	 stage('DeployApplicationintoTomcat')
+	 {
+	 steps{
+	 sshagent(['13ba43ca-5441-41da-a8ea-b723e817e9f1']) {
+	 sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@13.235.78.98:/opt/apache-tomcat-9.0.53/webapps"
+	 
+	}
+	}
+	 
+	 }
+}
+post{
+success{
+mail bcc: 'tholla.venu@gmail.com', body: '''Build Success.
+
+
+Regards,
+Venu Gopal ''', cc: 'tholla.venu@gmail.com', from: '', replyTo: '', subject: 'Build Success', to: 'tholla.venu@gmail.com'
+}
+failure{
+mail bcc: 'tholla.venu@gmail.com', body: '''Build failure.
+
+
+Regards,
+Venu Gopal ''', cc: 'tholla.venu@gmail.com', from: '', replyTo: '', subject: 'Build failure', to: 'tholla.venu@gmail.com'
+
+}
+
+}
+}
