@@ -1,6 +1,7 @@
 node 
 {
     def mavenHome = tool name: "maven3.6.2"
+    properties([buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', daysToKeepStr: '', numToKeepStr: '5')), pipelineTriggers([pollSCM('* * * * *')])])
   stage('CheckOutCode'){
  git branch: 'development', credentialsId: 'deaf22c6-86f5-4e40-85de-23f11bd1acc3', url: 'https://github.com/tholla-ec-devops-test/maven-web-application.git'
       }
